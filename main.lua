@@ -1,6 +1,7 @@
 local MAX = 50
-
 local boundaries = {}
+local last_seen = {} -- Points where robots were last seen before vanishing off grid and left a "scent"
+
 local function set_boundaries(x,y)
 	boundaries.x = x <= MAX and x or MAX
 	boundaries.y = y <= MAX and y or MAX
@@ -8,7 +9,6 @@ end
 
 local Robot = {}
 local mt_rbt = { __index = Robot}
-
 
 local function get_index(t,str)
 	for i, v in ipairs(t) do 
@@ -30,30 +30,43 @@ function Robot:turn(direction)
 	self.orientation = orientations[new_i]
 end
 
-function Robot:walk()
-	local x_now, y_now = self.position.x, self.position.y
-	if self.orientation == "N" then
-		self.position.y = self.position.y + 1
-	elseif self.orientation == "E" then
-		self.position.x = self.position.x + 1
-	elseif self.orientation == "S" then
-		self.position.y = self.position.y - 1
-	elseif self.orientation == "W" then
-		self.position.x = self.position.x - 1
-	end
-	if self:is_off_boundaries() then self.lost = true end
-end
-
-function Robot:is_off_boundaries()
-	if  self.position.x < 0 or
-		self.position.x > boundaries.x or 
-		self.position.y < 0 or 
-		self.position.y > boundaries.y then
+local function is_off_boundaries(x,y)
+	if  x < 0 or
+		x > boundaries.x or 
+		y < 0 or 
+		y > boundaries.y then
 
 		return true
 	end	
 	return false
 end
+
+function Robot:walk()
+	local new_x, new_y
+	if self.orientation == "N" then
+		new_y = self.position.y + 1
+	elseif self.orientation == "E" then
+		new_x = self.position.x + 1
+	elseif self.orientation == "S" then
+		new_y = self.position.y - 1
+	elseif self.orientation == "W" then
+		new_x = self.position.x - 1
+	end
+
+	new_x = new_x or self.position.x -- defaulting
+	new_y = new_y or self.position.y
+
+	if is_off_boundaries(new_x, new_y) then
+		if self:get_scent() then return end
+
+		self.lost = true 
+		last_seen[#last_seen+1] = {x = self.position.x, y = self.position.y}
+	end
+
+	self.position.x, self.position.y = new_x, new_y
+end
+
+
 
 -- x,y < MAX
 -- orientation: string, N,S,E or W
@@ -70,7 +83,6 @@ end
  -- direction: string L, R or F
 function Robot:move(direction)
 	if self.lost then return end 
-
 	if direction == "F" then
 		self:walk()
 	else
@@ -78,8 +90,15 @@ function Robot:move(direction)
 	end
 end
 
--- Points where robots were last seen before vanishing off grid and left a "scent"
-local last_seen = {}
+function Robot:get_scent()
+	for _,p in ipairs(last_seen) do
+		if p.x == self.position.x and p.y == self.position.y then
+			print("I stepped in a bad place")
+			return true
+		end
+	end
+	return false
+end 
 
 -- allow additional commands...
 local fp = io.open("input.txt","r")
