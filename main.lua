@@ -1,9 +1,15 @@
 local MAX = 50
-local boundaries = {}
+
+local Robot = {}
+local mt_rbt = { __index = Robot} --metatable for Lua OO
+
+local last_seen = {} -- Points where robots were last seen before vanishing off grid and left a "scent"
+local orientations = {"N", "E", "S", "W"} -- <--- left ... turn ... right---->
+local boundaries = { x = 0, y = 0} -- Grid upper-right boundaries, updated on reading input
 
 local function max_check(x,y)
 	if x > MAX or y > MAX then
-		error('Error, the maximum value for a coordinate is '..MAX)
+		error('Error: the maximum value for a coordinate is '..MAX)
 	end
 end
 
@@ -30,13 +36,6 @@ local function get_index(t,str)
 	end
 	return nil
 end
-
-
-
-local Robot = {}
-local mt_rbt = { __index = Robot}
-local last_seen = {} -- Points where robots were last seen before vanishing off grid and left a "scent"
-local orientations = {"N", "E", "S", "W"} -- <--- left ... turn ... right---->
 
 function Robot:new(x,y,orientation)
 	local obj = {
@@ -71,7 +70,6 @@ function Robot:turn(direction)
 	end
 	self.orientation = orientations[new_i]
 end
-
 
 function Robot:walk()
 	local new_x, new_y
@@ -110,12 +108,18 @@ end
 
 -- Main Loop for reading input file
 local fp = io.open("input.txt","r")
+
+if not fp then
+	error('Error: expecting to have a file "input.txt" at the same dir.')
+end
+
 local b_x, b_y = fp:read("*number","*number")
 set_boundaries(b_x,b_y)
 
 
 while(fp:read(0)) do
 	local x, y, _, o = fp:read("*number","*number",1,1) -- _ for whitespace
+	if not x then break end -- input may have extra blank lines at the end
 	max_check(x,y)
 	local r = Robot:new(x,y,o)
 	
@@ -124,10 +128,12 @@ while(fp:read(0)) do
 	local instructions = fp:read("*line")
 	instructions:gsub(".", function(c) r:move(c) end)
 
-	print(r.position.x,r.position.y,r.orientation,r.lost and 'LOST' or '')
+	print( 	r.position.x,
+			r.position.y,
+			r.orientation,
+			r.lost and 'LOST' or ''
+		)
 
 	fp:read("*line") -- reads a new line, should be blank
 end 
 fp:close()
-
-
