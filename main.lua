@@ -41,13 +41,13 @@ end
 
 function Robot:walk()
 	if self.orientation == "N" then
-		self.y = self.y + 1
+		self.position.y = self.position.y + 1
 	elseif self.orientation == "E" then
-		self.x = self.x + 1
+		self.position.x = self.position.x + 1
 	elseif self.orientation == "S" then
-		self.x = self.y - 1
+		self.position.y = self.position.y - 1
 	elseif self.orientation == "W" then
-		self.x = self.x - 1
+		self.position.x = self.position.x - 1
 	end
 end
 
@@ -64,10 +64,10 @@ end
 
  -- direction: string L, R or F
 function Robot:move(direction)
-	if direction ~= "F" then
-		self:turn(direction)
-	else
+	if direction == "F" then
 		self:walk()
+	else
+		self:turn(direction)
 	end
 end
 
@@ -81,3 +81,24 @@ local boundaries = {}
 local instruction = ""
 
 -- allow additional commands...
+local fp = io.open("input.txt","r")
+local b_x, b_y = fp:read("*number","*number")
+
+print(b_x, b_y)
+
+local x, y, _, o = fp:read("*number","*number",1,1) -- _ for whitespace
+local r = Robot:new(x,y,o)
+print(r.position.x,r.position.y,r.orientation)
+
+fp:read("*line") -- reads the rest of the line
+
+local instructions = fp:read("*line")
+print(instructions)
+
+instructions:gsub(".", function(c) r:move(c) end)
+
+print(r.position.x,r.position.y,r.orientation)
+
+fp:close()
+
+
