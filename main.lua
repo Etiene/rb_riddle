@@ -18,8 +18,41 @@ end
 local Robot = {}
 local mt_rbt = { __index = Robot}
 
+
+local function get_index(t,str)
+	for i, v in ipairs(t) do 
+		if v == str then return i end
+	end
+	return nil
+end
+
+local orientations = {"N", "E", "S", "W"} -- <--- left ... turn ... right---->
+
+function Robot:turn(direction)
+	local i = get_index(orientations,self.orientation)
+	local new_i 
+	if direction == "L" then
+		new_i = i == 1 and #orientations or i - 1
+	elseif direction == "R" then
+		new_i = (i % #orientations) + 1
+	end
+	self.orientation = orientations[new_i]
+end
+
+function Robot:walk()
+	if self.orientation == "N" then
+		self.y = self.y + 1
+	elseif self.orientation == "E" then
+		self.x = self.x + 1
+	elseif self.orientation == "S" then
+		self.x = self.y - 1
+	elseif self.orientation == "W" then
+		self.x = self.x - 1
+	end
+end
+
 -- x,y < MAX
--- orentation: string, N,S,E or W
+-- orientation: string, N,S,E or W
 function Robot:new(x,y,orientation)
 	local obj = {
 		position = Point:new(x,y),
@@ -31,6 +64,11 @@ end
 
  -- direction: string L, R or F
 function Robot:move(direction)
+	if direction ~= "F" then
+		self:turn(direction)
+	else
+		self:walk()
+	end
 end
 
 -- Points where robots were last seen before vanishing off grid and left a "scent"
