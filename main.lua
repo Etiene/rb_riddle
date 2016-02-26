@@ -60,10 +60,16 @@ end
 
 function Robot:obbey(instruction)
 	if self.lost then return end 
+
 	if instruction == "F" then
 		self:walk()
-	elseif in_list(commands,instruction) then
+
+	elseif instruction == "R" or instruction =="L" then
 		self:turn(instruction)
+
+	elseif in_list(commands,instruction) then
+		--does nothing
+		--TODO: implement new instructions
 	else
 		error("Error: Sorry, the instruction `"..instruction.."` is not available yet.")
 	end
@@ -100,6 +106,7 @@ function Robot:walk()
 
 		self.lost = true 
 		last_seen[#last_seen+1] = {x = self.position.x, y = self.position.y}
+		return
 	end
 
 	self.position.x, self.position.y = new_x, new_y
