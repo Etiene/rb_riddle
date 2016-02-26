@@ -123,10 +123,15 @@ end
 
 
 -- Main Loop for reading input file
-local fp = io.open("input.txt","r")
+if not arg[1] then
+	print("Usage: lua main.lua <input file>")
+	os.exit(0)
+end
+
+local fp = io.open(arg[1],"r")
 
 if not fp then
-	error('Error: expecting to have a file "input.txt" at the same dir.')
+	error('Error: expecting to have a file `'..arg[1]..'` at the same dir.')
 end
 
 local b_x, b_y = fp:read("*number","*number")
