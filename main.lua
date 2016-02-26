@@ -5,6 +5,7 @@ local mt_rbt = { __index = Robot} --metatable for Lua OO
 
 local last_seen = {} -- Points where robots were last seen before vanishing off grid and left a "scent"
 local orientations = {"N", "E", "S", "W"} -- <--- left ... turn ... right---->
+local commands = {"L","R","F"} -- Currently available instructions
 local boundaries = { x = 0, y = 0} -- Grid upper-right boundaries, updated on reading input
 
 local function max_check(x,y)
@@ -37,6 +38,13 @@ local function get_index(t,str)
 	return nil
 end
 
+local function in_list(t,str)
+	for _,v in ipairs(t) do 
+		if str == v then return true end
+	end
+	return false
+end
+
 function Robot:new(x,y,orientation)
 	local obj = {
 		position = { x = x, y = y },
@@ -50,13 +58,14 @@ function Robot:new(x,y,orientation)
 	return obj
 end
 
--- direction: string L, R or F
-function Robot:move(direction)
+function Robot:obbey(instruction)
 	if self.lost then return end 
-	if direction == "F" then
+	if instruction == "F" then
 		self:walk()
+	elseif in_list(commands,instruction) then
+		self:turn(instruction)
 	else
-		self:turn(direction)
+		error("Error: Sorry, the instruction `"..instruction.."` is not available yet.")
 	end
 end
 
@@ -126,7 +135,7 @@ while(fp:read(0)) do
 	fp:read("*line") -- reads the rest of the line
 
 	local instructions = fp:read("*line")
-	instructions:gsub(".", function(c) r:move(c) end)
+	instructions:gsub(".", function(cmd) r:obbey(cmd) end) -- Will run this function on every character of instruction
 
 	print( 	r.position.x,
 			r.position.y,
