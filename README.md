@@ -1,12 +1,12 @@
 #Instructions
 
 * Ubuntu
-
-	apt-get install lua
-	lua main.lua input.txt
-
+```bash
+apt-get install lua
+lua main.lua input.txt
+```
 * OS X
-
-	brew install lua
-	lua main.lua input.txt
-
+```bash
+brew install lua
+lua main.lua input.txt
+```
